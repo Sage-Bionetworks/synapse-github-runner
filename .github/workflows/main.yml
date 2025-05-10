@@ -1,0 +1,56 @@
+
+name: main
+
+on:
+  pull_request:
+    branches: ['*']
+  push:
+    branches: ['*']
+
+concurrency: ci-${{ github.ref }}
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Static Analysis
+        uses: pre-commit/action@v3.0.0
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: python -m pytest tests/ -s -v
+
+  # make sure tests pass for both dev and prod stacks
+  synth-test:
+    needs: tests
+    strategy:
+      matrix:
+        stack: ['dev', 'prod']
+    uses: "./.github/workflows/synth-test.yml"
+    with:
+      CONTEXT: ${{ matrix.stack }}
+
+  cdk-deploy-dev:
+    # only run on a push/merge, not on a PR
+    if: ${{ github.ref_name == 'dev' }}
+    needs: [tests, synth-test]
+    uses: "./.github/workflows/aws-deploy.yml"
+    secrets: inherit
+    with:
+      CONTEXT: ${{ github.ref_name }}
+      ROLE_TO_ASSUME: arn:aws:iam::449435941126:role/TODO
+
+  cdk-deploy-prod:
+    # only run on a push/merge, not on a PR
+    if: ${{ github.ref_name == 'prod' }}
+    needs: [tests, synth-test]
+    uses: "./.github/workflows/aws-deploy.yml"
+    secrets: inherit
+    with:
+      CONTEXT: ${{ github.ref_name }}
+      ROLE_TO_ASSUME: arn:aws:iam::325565585839:role/TODO
