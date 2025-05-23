@@ -1,14 +1,6 @@
 from aws_cdk import (Stack,
     aws_ec2 as ec2,
-    aws_s3 as s3,
-    aws_ecs as ecs,
-    aws_ecs_patterns as ecs_patterns,
-    aws_elasticloadbalancingv2 as elbv2,
-    aws_route53 as r53,
-    aws_apigateway as apigateway,
     aws_iam as iam,
-    aws_lambda,
-    aws_logs as logs,
     CfnOutput,
     Duration,
     Tags)
@@ -58,10 +50,16 @@ def get_port(env: dict) -> int:
 
 class SynapseJenkinsStack(Stack):
 
-    def __init__(self, scope: Construct, context: str, env: dict, vpc: ec2.Vpc, **kwargs) -> None:
+    def __init__(self, scope: Construct, context: str, env: dict) -> None:
         stack_prefix = f'{env.get(config.STACK_NAME_PREFIX_CONTEXT)}'
         stack_id = f'{stack_prefix}-SynapseJenkinsStack'
-        super().__init__(scope, stack_id, **kwargs)
+        # TODO look up account and region
+        account_id="449435941126"
+        region="us-east-1"
+        super().__init__(scope, stack_id, env={"account":account_id,"region":region})
+        
+        vpc = ec2.Vpc.from_lookup(self, "vpc-0f126dc4dd46853a6", 
+            	vpc_id="vpc-0f126dc4dd46853a6")
 
  		# Create Security Group
         sec_group = ec2.SecurityGroup(
@@ -69,9 +67,7 @@ class SynapseJenkinsStack(Stack):
         )
         
         # Create Security Group Ingress Rules
-        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "allow SSH access")       
-        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(443), "allow web access")       
-        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(8080), "default Jenkins port") # TODO Remove once 443 works       
+        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "allow SSH access")    
         
         key_pair_name = "dev-build" # TODO make this a parameter
         
@@ -82,24 +78,35 @@ class SynapseJenkinsStack(Stack):
         	"sudo dnf update -y && sudo dnf install -y docker",
         	"sudo systemctl enable docker",
         	"sudo systemctl start docker",
-        	"sudo docker start jenkins || sudo docker run -d -p 8080:8080 --name jenkins --restart unless-stopped jenkins/jenkins", # TODO specify version
-        	"echo User-data script completed successfully"
-        	# TODO git clone the source repo'
-        	# TODO configure Jenkins
- 			# TODO they have a Jenkins pipeline language to define the builds (not sure if it extends to configuring the server).
+ 			# https://repost.aws/knowledge-center/install-ssm-agent-ec2-linux
+ 			"sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_arm64/amazon-ssm-agent.rpm",
+ 			"sudo systemctl enable amazon-ssm-agent",
+ 			"sudo systemctl start amazon-ssm-agent",
+ 			"echo User-data script completed successfully"
         )
+
+        # Create an IAM role
+        ec2_role = iam.Role(self, "EC2Role",
+        	assumed_by=iam.ServicePrincipal("ec2.amazonaws.com")  # EC2 principal
+        )
+
+        # Add managed policy (e.g., S3 read-only access)
+        ec2_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")) 
         
+
         # Create EC2 instance
         instance = ec2.Instance(
             self,
             "Jenkins",
-            instance_type=ec2.InstanceType("t2.micro"),
-            machine_image=ec2.MachineImage.latest_amazon_linux2023(), # TODO we want CIS hardened AMI
+            instance_type=ec2.InstanceType("t4g.small"),
+            machine_image=ec2.MachineImage.generic_linux({"us-east-1":"ami-002342c26fac4b685"}), # TODO lookup ami
             vpc=vpc,
             security_group=sec_group,
-            associate_public_ip_address=True,
+            associate_public_ip_address=False,
             key_name=key_pair_name,
-            user_data=user_data
+            user_data=user_data,
+            role=ec2_role
+            )
         )
 
         # Output Instance ID
