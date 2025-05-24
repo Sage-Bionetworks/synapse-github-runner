@@ -12,101 +12,105 @@ from constructs import Construct
 
 from aws_cdk.aws_ecr_assets import Platform
 
-ACM_CERT_ARN_CONTEXT = "ACM_CERT_ARN"
-IMAGE_PATH_AND_TAG_CONTEXT = "IMAGE_PATH_AND_TAG"
-PORT_NUMBER_CONTEXT = "PORT"
+def get_account_id(env: dict) -> str:
+    return env.get("ACCOUNT_ID")
 
-# The name of the environment variable that will hold the secrets
-SECRETS_MANAGER_ENV_NAME = "SECRETS_MANAGER_SECRETS"
-CONTAINER_ENV_NAME = "CONTAINER_ENV"
+def get_region(env: dict) -> str:
+    return env.get("AWS_DEFAULT_REGION")
 
-PRIVATE_KEY_FILE_NAME = "privatekey.pem"
-CERTIFICATE_FILE_NAME = "certificate.pem"
+def get_vpc_id(env: dict) -> str:
+    return env.get("VPC_ID")
 
-BUCKET_NAME = "BUCKET_NAME"
+def get_ami(env: dict) -> str:
+    return env.get("AMI")
 
-NOTIFICATION_AUTH_SECRET_JSON_KEY="notification_auth"
-HTTP_SECRET_SECRET_JSON_KEY="http_secret"
+def get_instance_type(env: dict) -> str:
+    return env.get("INSTANCE_TYPE")
+    
+def get_github_runner_token(env: dict) -> str:
+    return env.get("GITHUB_RUNNER_TOKEN")
 
-def get_secret(scope: Construct, id: str, name: str) -> str:
-    return sm.Secret.from_secret_name_v2(scope, id, name)
-    # see also: https://docs.aws.amazon.com/cdk/api/v1/python/aws_cdk.aws_ecs/Secret.html
-    # see also: ecs.Secret.from_ssm_parameter(ssm.IParameter(parameter_name=name))
+def get_github_repo_url(env: dict) -> str:
+    return env.get("GITHUB_REPO_URL")
 
-def get_container_env(env: dict) -> dict:
-    return env.get(CONTAINER_ENV_NAME, {})
-
-def get_bucket_name(env: dict) -> dict:
-    return env.get(BUCKET_NAME)
-
-def get_certificate_arn(env: dict) -> str:
-    return env.get(ACM_CERT_ARN_CONTEXT)
-
-def get_docker_image_name(env: dict):
-    return env.get(IMAGE_PATH_AND_TAG_CONTEXT)
-
-def get_port(env: dict) -> int:
-    return int(env.get(PORT_NUMBER_CONTEXT))
+    
 
 class SynapseJenkinsStack(Stack):
 
-    def __init__(self, scope: Construct, context: str, env: dict) -> None:
+    def __init__(self, scope: Construct, env: dict) -> None:
         stack_prefix = f'{env.get(config.STACK_NAME_PREFIX_CONTEXT)}'
-        stack_id = f'{stack_prefix}-SynapseJenkinsStack'
-        # TODO look up account and region
-        account_id="449435941126"
-        region="us-east-1"
+        stack_id = f'{stack_prefix}-GHRunner'
+        account_id=get_account_id(env)
+        region=get_region(env)
         super().__init__(scope, stack_id, env={"account":account_id,"region":region})
-        
-        vpc = ec2.Vpc.from_lookup(self, "vpc-0f126dc4dd46853a6", 
-            	vpc_id="vpc-0f126dc4dd46853a6")
 
- 		# Create Security Group
+        vpc_id=get_vpc_id(env)
+        vpc = ec2.Vpc.from_lookup(self, vpc_id, vpc_id=vpc_id)
+
+        # Create Security Group
         sec_group = ec2.SecurityGroup(
             self, "MySecurityGroup", vpc=vpc, allow_all_outbound=True
         )
-        
+
         # Create Security Group Ingress Rules
-        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "allow SSH access")    
+        sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "allow SSH access")
         
-        key_pair_name = "dev-build" # TODO make this a parameter
-        
+        github_runner_token = get_github_runner_token(env)
+        github_repo_url = get_github_repo_url(env)
+
         user_data = ec2.UserData.for_linux()
         user_data.add_commands(
-        	"exec > /var/log/user-data.log 2>&1",
-        	"echo Running user-data script",
-        	"sudo dnf update -y && sudo dnf install -y docker",
-        	"sudo systemctl enable docker",
-        	"sudo systemctl start docker",
- 			# https://repost.aws/knowledge-center/install-ssm-agent-ec2-linux
- 			"sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_arm64/amazon-ssm-agent.rpm",
- 			"sudo systemctl enable amazon-ssm-agent",
- 			"sudo systemctl start amazon-ssm-agent",
- 			"echo User-data script completed successfully"
+            "exec > /var/log/user-data.log 2>&1",
+            "echo Running user-data script",
+            "echo enabling SSM Agent",
+            # https://repost.aws/knowledge-center/install-ssm-agent-ec2-linux
+            "dnf update -y && sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_arm64/amazon-ssm-agent.rpm",
+            "systemctl enable amazon-ssm-agent",
+            "systemctl start amazon-ssm-agent",            
+            "echo Starting GitHub Self-Hosted Runner",
+            "yum update && yum install libicu -y",
+            "echo Adding github_runner user",
+            "useradd -m github_runner",
+            # Create a folder
+            "su -c \"mkdir ~github_runner/actions-runner && cd ~github_runner/actions-runner\" github_runner",
+            # Download the latest runner package
+            "su -c \"curl -o ~github_runner/actions-runner/actions-runner-linux-arm64-2.324.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.324.0/actions-runner-linux-arm64-2.324.0.tar.gz\" github_runner",
+            # Extract the installer
+            "su -c \"tar xzf ~github_runner/actions-runner/actions-runner-linux-arm64-2.324.0.tar.gz -C ~github_runner/actions-runner\" github_runner",
+            # Create the runner and start the configuration experience
+            "About to run ./config.sh",
+            f"su -c \"~github_runner/actions-runner/config.sh --unattended --replace --url {github_repo_url} --token {github_runner_token}\" github_runner",
+            # from https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/configuring-the-self-hosted-runner-application-as-a-service
+            # Install the service with the following command:
+            "About to run svc.sh install",
+            "~github_runner/actions-runner/svc.sh install",
+            # Start the service with the following command:
+            "About to run svc.sh start",
+            "~github_runner/actions-runner/svc.sh start",
+            "echo User-data script completed."
         )
 
         # Create an IAM role
         ec2_role = iam.Role(self, "EC2Role",
-        	assumed_by=iam.ServicePrincipal("ec2.amazonaws.com")  # EC2 principal
+            assumed_by=iam.ServicePrincipal("ec2.amazonaws.com")  # EC2 principal
         )
-
         # Add managed policy (e.g., S3 read-only access)
-        ec2_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")) 
-        
+        ec2_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore"))
+
+        ami = get_ami(env)
+        instance_type = get_instance_type(env)
 
         # Create EC2 instance
         instance = ec2.Instance(
             self,
-            "Jenkins",
-            instance_type=ec2.InstanceType("t4g.small"),
-            machine_image=ec2.MachineImage.generic_linux({"us-east-1":"ami-002342c26fac4b685"}), # TODO lookup ami
+            "GitHubRunner",
+            instance_type=ec2.InstanceType(instance_type),
+            machine_image=ec2.MachineImage.generic_linux({region:ami}),
             vpc=vpc,
             security_group=sec_group,
             associate_public_ip_address=False,
-            key_name=key_pair_name,
             user_data=user_data,
             role=ec2_role
-            )
         )
 
         # Output Instance ID

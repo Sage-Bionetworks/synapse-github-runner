@@ -31,26 +31,24 @@
       "aws-cn"
     ],
     "dev": {
+      "ACCOUNT_ID": "449435941126",
       "AWS_DEFAULT_REGION": "us-east-1",
-      "PORT": "443",
-      "CONTAINER_ENV": {
-      },
+      "VPC_ID":"vpc-0f126dc4dd46853a6",
+      "AMI":"ami-002342c26fac4b685",
+      "INSTANCE_TYPE":"t4g.small",
       "TAGS": {
         "CostCenter": "Platform Infrastructure / 990300",
         "OwnerEmail": "synapseeng@sagebase.org"
       },
-      "STACK_NAME_PREFIX": "synapse-jenkins-dev"
+      "STACK_NAME_PREFIX": "synapse-runner-dev"
     },
     "prod": {
       "AWS_DEFAULT_REGION": "us-east-1",
-      "PORT": "443",
-      "CONTAINER_ENV": {
-      },
       "TAGS": {
         "CostCenter": "Platform Infrastructure / 990300",
         "OwnerEmail": "synapseeng@sagebase.org"
       },
-      "STACK_NAME_PREFIX": "synapse-jenkins-prod"
+      "STACK_NAME_PREFIX": "synapse-runner-prod"
     }
   }
 }

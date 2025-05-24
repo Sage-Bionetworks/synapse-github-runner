@@ -10,6 +10,6 @@ try:
 except Exception as err:
   raise SystemExit(err)
 
-synapse_jenkins_stack = SynapseJenkinsStack(app, context, app_config)
+synapse_jenkins_stack = SynapseJenkinsStack(app, app_config)
 
 app.synth()
