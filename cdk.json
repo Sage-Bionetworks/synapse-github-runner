@@ -43,7 +43,11 @@
       "STACK_NAME_PREFIX": "synapse-runner-dev"
     },
     "prod": {
+      "ACCOUNT_ID": "325565585839",
       "AWS_DEFAULT_REGION": "us-east-1",
+      "VPC_ID":"vpc-c08848ba",
+      "AMI":"ami-002342c26fac4b685",
+      "INSTANCE_TYPE":"t4g.small",
       "TAGS": {
         "CostCenter": "Platform Infrastructure / 990300",
         "OwnerEmail": "synapseeng@sagebase.org"
