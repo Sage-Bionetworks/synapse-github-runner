@@ -1,5 +1,5 @@
 # synapse-github-runner
-CDK-based deployment of an EC2 server to run Synapse builds and administrative jobs
+CDK-based deployment of an EC2 server to run Synapse builds and administrative jobs.  Runner can see `/synapse/admin-pat` in Secrets Manager.
 
 To run using the CLI:
 

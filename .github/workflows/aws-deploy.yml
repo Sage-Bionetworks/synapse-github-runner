@@ -9,9 +9,12 @@ on:
       CONTEXT:
         required: true
         type: string
+        default: ${{ github.ref_name }}
       ROLE_TO_ASSUME:
         required: true
         type: string
+        default: arn:aws:iam::449435941126:role/TODO
+        
 
 jobs:
 
@@ -31,6 +34,7 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: ${{inputs.ROLE_TO_ASSUME }}
+          TODO it's the caller, not this repo, which will be authorized to assume the role
           role-session-name: GHA-${{ github.repository_owner }}-${{ github.event.repository.name }}-${{ github.run_id }}
           role-duration-seconds: 1200
 
@@ -38,5 +42,5 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'deploy'
-          cdk_args: '--require-approval never --context env=${{ inputs.CONTEXT }} --progress events --debug'
+          cdk_args: '--require-approval never -c env=${{ inputs.CONTEXT }} -c github_runner_token=${{ TODO }} -c github_repo_url=${{ TODO }} --progress events --debug'
           actions_comment: false

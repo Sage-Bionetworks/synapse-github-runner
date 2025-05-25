@@ -34,23 +34,3 @@ jobs:
     uses: "./.github/workflows/synth-test.yml"
     with:
       CONTEXT: ${{ matrix.stack }}
-
-  cdk-deploy-dev:
-    # only run on a push/merge, not on a PR
-    if: ${{ github.ref_name == 'dev' }}
-    needs: [tests, synth-test]
-    uses: "./.github/workflows/aws-deploy.yml"
-    secrets: inherit
-    with:
-      CONTEXT: ${{ github.ref_name }}
-      ROLE_TO_ASSUME: arn:aws:iam::449435941126:role/TODO
-
-  cdk-deploy-prod:
-    # only run on a push/merge, not on a PR
-    if: ${{ github.ref_name == 'prod' }}
-    needs: [tests, synth-test]
-    uses: "./.github/workflows/aws-deploy.yml"
-    secrets: inherit
-    with:
-      CONTEXT: ${{ github.ref_name }}
-      ROLE_TO_ASSUME: arn:aws:iam::325565585839:role/TODO

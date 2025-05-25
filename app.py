@@ -2,7 +2,7 @@
 import aws_cdk as cdk
 import helpers
 
-from synapse_jenkins.synapse_jenkins_stack import SynapseJenkinsStack
+from synapse_github_runner.synapse_github_runner_stack import SynapseGithubRunnerStack
 
 app = cdk.App()
 try:
@@ -10,6 +10,6 @@ try:
 except Exception as err:
   raise SystemExit(err)
 
-synapse_jenkins_stack = SynapseJenkinsStack(app, app_config)
+SynapseGithubRunnerStack(app, app_config)
 
 app.synth()

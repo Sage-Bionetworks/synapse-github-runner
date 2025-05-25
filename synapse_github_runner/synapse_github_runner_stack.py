@@ -35,7 +35,7 @@ def get_github_repo_url(env: dict) -> str:
 
     
 
-class SynapseJenkinsStack(Stack):
+class SynapseGithubRunnerStack(Stack):
 
     def __init__(self, scope: Construct, env: dict) -> None:
         stack_prefix = f'{env.get(config.STACK_NAME_PREFIX_CONTEXT)}'
@@ -96,6 +96,12 @@ class SynapseJenkinsStack(Stack):
         )
         # Add managed policy (e.g., S3 read-only access)
         ec2_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore"))
+        
+        # Add policy to let EC2 read /synapse/admin-pat from Secrets Manager
+        ec2_role.add_to_policy(iam.PolicyStatement(
+        	actions=["secretsmanager:GetSecretValue"],
+        	resources=[f"arn:aws:secretsmanager:{region}:{account_id}:secret:/synapse/admin-pat*"]
+        ))
 
         ami = get_ami(env)
         instance_type = get_instance_type(env)
