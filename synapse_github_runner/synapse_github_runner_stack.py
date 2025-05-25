@@ -26,14 +26,14 @@ def get_ami(env: dict) -> str:
 
 def get_instance_type(env: dict) -> str:
     return env.get("INSTANCE_TYPE")
-    
+
 def get_github_runner_token(env: dict) -> str:
     return env.get("GITHUB_RUNNER_TOKEN")
 
 def get_github_repo_url(env: dict) -> str:
     return env.get("GITHUB_REPO_URL")
 
-    
+
 
 class SynapseGithubRunnerStack(Stack):
 
@@ -54,7 +54,7 @@ class SynapseGithubRunnerStack(Stack):
 
         # Create Security Group Ingress Rules
         sec_group.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "allow SSH access")
-        
+
         github_runner_token = get_github_runner_token(env)
         github_repo_url = get_github_repo_url(env)
 
@@ -96,11 +96,11 @@ class SynapseGithubRunnerStack(Stack):
         )
         # Add managed policy (e.g., S3 read-only access)
         ec2_role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore"))
-        
+
         # Add policy to let EC2 read /synapse/admin-pat from Secrets Manager
         ec2_role.add_to_policy(iam.PolicyStatement(
-        	actions=["secretsmanager:GetSecretValue"],
-        	resources=[f"arn:aws:secretsmanager:{region}:{account_id}:secret:/synapse/admin-pat*"]
+            actions=["secretsmanager:GetSecretValue"],
+            resources=[f"arn:aws:secretsmanager:{region}:{account_id}:secret:/synapse/admin-pat*"]
         ))
 
         ami = get_ami(env)
