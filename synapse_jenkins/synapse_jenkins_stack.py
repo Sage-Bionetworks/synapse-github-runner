@@ -66,27 +66,27 @@ class SynapseJenkinsStack(Stack):
             # https://repost.aws/knowledge-center/install-ssm-agent-ec2-linux
             "dnf update -y && sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_arm64/amazon-ssm-agent.rpm",
             "systemctl enable amazon-ssm-agent",
-            "systemctl start amazon-ssm-agent",            
+            "systemctl start amazon-ssm-agent",
+
             "echo Starting GitHub Self-Hosted Runner",
             "yum update && yum install libicu -y",
             "echo Adding github_runner user",
             "useradd -m github_runner",
             # Create a folder
-            "su -c \"mkdir ~github_runner/actions-runner && cd ~github_runner/actions-runner\" github_runner",
+            "su -c \"mkdir ~/actions-runner\" github_runner",
+            # Here we 'cd' as root so that all the 'su'-based commands execute in the correct directory
+            "cd ~github_runner/actions-runner",
             # Download the latest runner package
-            "su -c \"curl -o ~github_runner/actions-runner/actions-runner-linux-arm64-2.324.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.324.0/actions-runner-linux-arm64-2.324.0.tar.gz\" github_runner",
+            "su -c \"curl -o ./actions-runner-linux-arm64-2.324.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.324.0/actions-runner-linux-arm64-2.324.0.tar.gz\" github_runner",
             # Extract the installer
-            "su -c \"tar xzf ~github_runner/actions-runner/actions-runner-linux-arm64-2.324.0.tar.gz -C ~github_runner/actions-runner\" github_runner",
+            "su -c \"tar xzf ./actions-runner-linux-arm64-2.324.0.tar.gz\" github_runner",
             # Create the runner and start the configuration experience
-            "About to run ./config.sh",
-            f"su -c \"~github_runner/actions-runner/config.sh --unattended --replace --url {github_repo_url} --token {github_runner_token}\" github_runner",
+            f"su -c \"./config.sh --unattended --replace --url {github_repo_url} --token {github_runner_token}\" github_runner",
             # from https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/configuring-the-self-hosted-runner-application-as-a-service
             # Install the service with the following command:
-            "About to run svc.sh install",
-            "~github_runner/actions-runner/svc.sh install",
+            "./svc.sh install github_runner",
             # Start the service with the following command:
-            "About to run svc.sh start",
-            "~github_runner/actions-runner/svc.sh start",
+            "./svc.sh start",
             "echo User-data script completed."
         )
 
