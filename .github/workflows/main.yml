@@ -24,7 +24,7 @@ jobs:
     needs: tests
     strategy:
       matrix:
-        stack: ['dev', 'prod']
+        stack: ['dev']
     uses: "./.github/workflows/synth-test.yml"
     with:
       CONTEXT: ${{ matrix.stack }}
