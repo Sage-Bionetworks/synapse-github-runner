@@ -1,6 +1,6 @@
 ---
 #
-# TODO move to the synapse-repo-runner repo', so multiple repo's can use it
+#
 #
 name: ensure-runner-exists
 
@@ -21,7 +21,6 @@ on:
         required: true
         type: string
         description: AWS role to assume to deploy self-hosted runner
-
 
 jobs:
   # There is no 'github.' variable that gives just the repo name so we have to do this:
