@@ -33,6 +33,14 @@ def get_github_runner_token(env: dict) -> str:
 def get_github_repo_url(env: dict) -> str:
     return env.get("GITHUB_REPO_URL")
 
+def get_runner_label(env: dict) -> str:
+    return env.get("RUNNER_LABEL")
+
+def get_image_central_role_arn(env: dict) -> str:
+    return env.get("IMAGE_CENTRAL_ROLE_ARN")
+
+def get_image_builder_pipeline_arn(env: dict) -> str:
+    return env.get("IMAGE_BUILDER_PIPELINE_ARN")
 
 
 class SynapseGithubRunnerStack(Stack):
@@ -57,6 +65,7 @@ class SynapseGithubRunnerStack(Stack):
 
         github_runner_token = get_github_runner_token(env)
         github_repo_url = get_github_repo_url(env)
+        runner_label = get_runner_label(env)
 
         user_data = ec2.UserData.for_linux()
         user_data.add_commands(
@@ -81,7 +90,7 @@ class SynapseGithubRunnerStack(Stack):
             # Extract the installer
             "su -c \"tar xzf ./actions-runner-linux-arm64-2.324.0.tar.gz\" github_runner",
             # Create the runner and start the configuration experience
-            f"su -c \"./config.sh --unattended --replace --url {github_repo_url} --token {github_runner_token}\" github_runner",
+            f"su -c \"./config.sh --unattended --replace --url {github_repo_url} --token {github_runner_token} --labels {runner_label}\" github_runner",
             # from https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/configuring-the-self-hosted-runner-application-as-a-service
             # Install the service with the following command:
             "./svc.sh install github_runner",
@@ -103,6 +112,13 @@ class SynapseGithubRunnerStack(Stack):
             resources=[f"arn:aws:secretsmanager:{region}:{account_id}:secret:/synapse/admin-pat*"]
         ))
 
+
+        image_central_role_arn=get_image_central_role_arn(env)
+        image_builder_pipeline_arn=get_image_builder_pipeline_arn(env)
+        # TODO assume image central role
+        # TODO
+
+        ## TODO remove AMI from cdk.json, remove get_ami()
         ami = get_ami(env)
         instance_type = get_instance_type(env)
 

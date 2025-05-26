@@ -6,15 +6,27 @@ name: aws-deploy
 on:
   workflow_call:
     inputs:
+      LABEL:
+        required: false
+        type: string
+        default: 'self-hosted'
+        description: label to add to the runner
       CONTEXT:
         required: true
         type: string
-        default: ${{ github.ref_name }}
+        description: dev or prod
       ROLE_TO_ASSUME:
         required: true
         type: string
-        default: arn:aws:iam::449435941126:role/TODO
-
+        description: AWS role to assume to deploy self-hosted runner
+      REPOSITORY_URL:
+        required: true
+        type: string
+        description:  The URL for the repository which will be using the runner
+    secrets:
+      REGISTRATION_TOKEN:
+        required: true
+        description:  The registration token from the repository which will use the runner
 
 jobs:
 
@@ -42,5 +54,10 @@ jobs:
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: 'deploy'
-          cdk_args: '--require-approval never -c env=${{ inputs.CONTEXT }} -c github_runner_token=${{ TODO }} -c github_repo_url=${{ TODO }} --progress events --debug'
+          cdk_args: >
+            '--require-approval never -c env=${{ inputs.CONTEXT }}
+            -c github_runner_token=${{ secrets.REGISTRATION_TOKEN }}
+            -c github_repo_url=${{ inputs.REPOSITORY_URL }}
+            -c runner_label=${{ inputs.LABEL }}
+             --progress events --debug'
           actions_comment: false

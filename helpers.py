@@ -15,5 +15,6 @@ def get_app_config(app: aws_cdk.App) -> dict:
   # for convenience we add them to the app_config map
   app_config["GITHUB_RUNNER_TOKEN"]=app.node.try_get_context("github_runner_token")
   app_config["GITHUB_REPO_URL"]=app.node.try_get_context("github_repo_url")
+  app_config["RUNNER_LABEL"]=app.node.try_get_context("runner_label")
 
   return context, app_config

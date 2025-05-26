@@ -36,6 +36,8 @@
       "VPC_ID":"vpc-0f126dc4dd46853a6",
       "AMI":"ami-002342c26fac4b685",
       "INSTANCE_TYPE":"t4g.small",
+      "IMAGE_CENTRAL_ROLE_ARN":"arn:aws:iam::867686887310:role/synapse-image-builder-pipline-read-acce-ServiceRole-7pTsBKXZzN0o",
+      "IMAGE_BUILDER_PIPELINE_ARN":"arn:aws:imagebuilder:us-east-1:867686887310:image-pipeline/cis-for-beanstalk-image-pipeline",
       "TAGS": {
         "CostCenter": "Platform Infrastructure / 990300",
         "OwnerEmail": "synapseeng@sagebase.org"
@@ -48,6 +50,8 @@
       "VPC_ID":"vpc-c08848ba",
       "AMI":"ami-002342c26fac4b685",
       "INSTANCE_TYPE":"t4g.small",
+      "IMAGE_CENTRAL_ROLE_ARN":"arn:aws:iam::867686887310:role/synapse-image-builder-pipline-read-acce-ServiceRole-7pTsBKXZzN0o",
+      "IMAGE_BUILDER_PIPELINE_ARN":"arn:aws:imagebuilder:us-east-1:867686887310:image-pipeline/cis-for-beanstalk-image-pipeline",
       "TAGS": {
         "CostCenter": "Platform Infrastructure / 990300",
         "OwnerEmail": "synapseeng@sagebase.org"
