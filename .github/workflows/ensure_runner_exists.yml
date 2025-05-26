@@ -21,6 +21,10 @@ on:
         required: true
         type: string
         description: AWS role to assume to deploy self-hosted runner
+    secrets:
+      ADMIN_READ_ORG_PAT:
+        required: true
+        description: PAT that let's workflow list runners and create registration tokens in the **caller** account
 
 jobs:
   # There is no 'github.' variable that gives just the repo name so we have to do this:
