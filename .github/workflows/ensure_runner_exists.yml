@@ -12,6 +12,11 @@ on:
         type: string
         default: 'self-hosted'
         description: label on which to filter runners
+      INSTANCE_TYPE:
+        required: false
+        type: string
+        default: 't4g.small'
+        description: type of EC2 instance to use for the runner
       CONTEXT:
         required: false
         type: string
@@ -118,5 +123,6 @@ jobs:
           context '${{ inputs.CONTEXT }}',
           role '${{ inputs.ROLE_TO_ASSUME }}',
           label '${{ inputs.LABEL }}',
-          repsitory url https://github.com/'${{ github.repository }}'"
+          repsitory url 'https://github.com/${{ github.repository }}',
+          instance_type '${{ inputs.INSTANCE_TYPE }}'"
 ...

@@ -21,9 +21,6 @@ def get_region(env: dict) -> str:
 def get_vpc_id(env: dict) -> str:
     return env.get("VPC_ID")
 
-def get_ami(env: dict) -> str:
-    return env.get("AMI")
-
 def get_instance_type(env: dict) -> str:
     return env.get("INSTANCE_TYPE")
 
@@ -112,14 +109,12 @@ class SynapseGithubRunnerStack(Stack):
             resources=[f"arn:aws:secretsmanager:{region}:{account_id}:secret:/synapse/admin-pat*"]
         ))
 
-
+        # Get the latest AMI from the Pipeline Builder
+        # This ensures the EC2 will pass CIS Level 1 security scans.
         image_central_role_arn=get_image_central_role_arn(env)
         image_builder_pipeline_arn=get_image_builder_pipeline_arn(env)
-        # TODO assume image central role
-        # TODO
+        ami = get_latest_image(image_builder_pipeline_arn, image_central_role_arn)
 
-        ## TODO remove AMI from cdk.json, remove get_ami()
-        ami = get_ami(env)
         instance_type = get_instance_type(env)
 
         # Create EC2 instance

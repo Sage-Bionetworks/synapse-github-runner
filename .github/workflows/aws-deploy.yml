@@ -11,6 +11,10 @@ on:
         type: string
         default: 'self-hosted'
         description: label to add to the runner
+      INSTANCE_TYPE:
+        required: true
+        type: string
+        description: type of EC2 instance to use for the runner
       CONTEXT:
         required: true
         type: string
@@ -59,5 +63,6 @@ jobs:
             -c github_runner_token=${{ secrets.REGISTRATION_TOKEN }}
             -c github_repo_url=${{ inputs.REPOSITORY_URL }}
             -c runner_label=${{ inputs.LABEL }}
+            -c instance_type=${{ inputs.INSTANCE_TYPE }}
              --progress events --debug'
           actions_comment: false

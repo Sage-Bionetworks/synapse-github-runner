@@ -16,5 +16,6 @@ def get_app_config(app: aws_cdk.App) -> dict:
   app_config["GITHUB_RUNNER_TOKEN"]=app.node.try_get_context("github_runner_token")
   app_config["GITHUB_REPO_URL"]=app.node.try_get_context("github_repo_url")
   app_config["RUNNER_LABEL"]=app.node.try_get_context("runner_label")
+  app_config["INSTANCE_TYPE"]=app.node.try_get_context("instance_type")
 
   return context, app_config
