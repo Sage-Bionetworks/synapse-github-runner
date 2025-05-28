@@ -44,6 +44,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          # TODO can this be made to the current fork and branch that the script is found in?
+          repository: Sage-Bionetworks/synapse-github-runner
+          ref: main
 
       - name: Assume AWS Role
         uses: aws-actions/configure-aws-credentials@v4
