@@ -62,10 +62,10 @@ jobs:
         with:
           cdk_subcommand: 'deploy'
           cdk_args: >
-            '--require-approval never -c env=${{ inputs.CONTEXT }}
+            --require-approval never -c env=${{ inputs.CONTEXT }}
             -c github_runner_token=${{ secrets.REGISTRATION_TOKEN }}
             -c github_repo_url=${{ inputs.REPOSITORY_URL }}
             -c runner_label=${{ inputs.LABEL }}
             -c instance_type=${{ inputs.INSTANCE_TYPE }}
-             --progress events --debug'
+             --progress events --debug
           actions_comment: false
