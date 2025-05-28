@@ -110,19 +110,15 @@ jobs:
     outputs:
       token: ${{ steps.generate-runner-registration-token.outputs.data}}
 
-  # This has to be a separate job so it can invoke the callable workflow
-  # TODO replace this simple 'echo' with the invocation of the runner creation workflow
   create-runner:
     needs: create-runner-registration-token
-    runs-on: ubuntu-latest
-    steps:
-
-      - id: create-self-hosted-runner
-        run: >
-          echo "registration token '${{ fromJSON(needs.create-runner-registration-token.outputs.token).token }}',
-          context '${{ inputs.CONTEXT }}',
-          role '${{ inputs.ROLE_TO_ASSUME }}',
-          label '${{ inputs.LABEL }}',
-          repsitory url 'https://github.com/${{ github.repository }}',
-          instance_type '${{ inputs.INSTANCE_TYPE }}'"
+    uses: "./.github/workflows/aws-deploy.yml"
+    with:
+      LABEL: ${{ inputs.LABEL }}
+      INSTANCE_TYPE: ${{ inputs.INSTANCE_TYPE }}
+      CONTEXT: ${{ inputs.CONTEXT }}
+      ROLE_TO_ASSUME: ${{ inputs.ROLE_TO_ASSUME }}
+      REPOSITORY_URL: https://github.com/${{ github.repository }}
+    secrets:
+      REGISTRATION_TOKEN: ${{ fromJSON(needs.create-runner-registration-token.outputs.token).token }}
 ...
