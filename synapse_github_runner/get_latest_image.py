@@ -42,8 +42,3 @@ def get_latest_image(image_pipeline_arn: str, image_central_role_arn: str) -> st
     if next_page_token is None:
       break
   return latest_image
-
-if __name__ == "__main__":
-  ami=get_latest_image("arn:aws:imagebuilder:us-east-1:867686887310:image-pipeline/cis-for-beanstalk-image-pipeline", "arn:aws:iam::867686887310:role/synapse-image-builder-pipline-read-acce-ServiceR\
-ole-7pTsBKXZzN0o")
-  print(ami)

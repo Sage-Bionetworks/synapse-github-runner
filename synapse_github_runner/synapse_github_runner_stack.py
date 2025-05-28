@@ -9,6 +9,7 @@ import config as config
 import aws_cdk.aws_certificatemanager as cm
 import aws_cdk.aws_secretsmanager as sm
 from constructs import Construct
+from synapse_github_runner.get_latest_image import get_latest_image
 
 from aws_cdk.aws_ecr_assets import Platform
 
